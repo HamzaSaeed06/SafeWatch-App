@@ -13,7 +13,7 @@ const backgroundJobs = require("./services/backgroundJobs");
 const app = express();
 
 app.use(helmet());
-app.use(cors({ origin: config.cors.origin }));
+app.use(cors({ origin: config.cors.origin || "*" }));
 app.use(express.json({ limit: "10kb" }));
 
 const limiter = rateLimit({
@@ -52,13 +52,14 @@ const start = async () => {
   setupWebSocket(server);
   backgroundJobs.start();
   server.listen(config.port, () => {
-    logger.info(`Server running on port ${config.port} [${config.nodeEnv}]`);
+    console.log(`Server running on port ${config.port} [${config.nodeEnv}]`);
   });
 };
 
 start().catch((err) => {
-  logger.error("Failed to start server:", err);
+  console.error("Failed to start server error details:", err);
   process.exit(1);
 });
+
 
 module.exports = app;
