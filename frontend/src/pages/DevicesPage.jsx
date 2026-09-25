@@ -4,8 +4,21 @@ import { Plus, Zap, Lightbulb, AlertTriangle, Smartphone, Trash2, Loader2, Refre
 import { deviceAPI, sosAPI, bandsAPI } from '../services/api';
 
 export default function DevicesPage() {
-  const { children, activeAlertCount, addToast, refreshData } = useApp();
+  const { children, activeAlertCount, addToast, refreshData, registerBand } = useApp();
   const [loadingChildId, setLoadingChildId] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [childName, setChildName] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    if (!childName.trim()) return;
+    setSubmitting(true);
+    await registerBand(childName);
+    setSubmitting(false);
+    setChildName('');
+    setShowAddModal(false);
+  };
 
   const handleHardwareTest = async (testLabel, child) => {
     setLoadingChildId(`${child.id}-${testLabel}`);
@@ -40,17 +53,65 @@ export default function DevicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[#0F172A]">Smart GPS Bands</h1>
           <p className="text-xs text-[#64748B] mt-1">{children.length} active paired bands connected to Express REST API</p>
         </div>
-        {activeAlertCount > 0 && (
-          <span className="bg-[#FEE2E2] text-[#DC2626] text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 bg-[#DC2626] rounded-full" />{activeAlertCount} Active Alerts
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {activeAlertCount > 0 && (
+            <span className="bg-[#FEE2E2] text-[#DC2626] text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-[#DC2626] rounded-full" />{activeAlertCount} Active Alerts
+            </span>
+          )}
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-[#0F172A] text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-[#1E293B] transition-colors shadow-sm"
+          >
+            <Plus size={16} /> Register New Band
+          </button>
+        </div>
       </div>
+
+      {/* Add Band Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-xl border border-[#E2E8F0] p-6 max-w-md w-full">
+            <h2 className="text-xl font-bold text-[#0F172A] mb-1">Pair New Smart Band</h2>
+            <p className="text-xs text-[#64748B] mb-4">Enter your child's nickname to pair a new SafeWatch GPS Band to your account.</p>
+            <form onSubmit={handleRegisterSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-[#334155] block mb-1">Child / Band Nickname</label>
+                <input
+                  type="text"
+                  value={childName}
+                  onChange={(e) => setChildName(e.target.value)}
+                  placeholder="e.g. Ali, Sara, Hamza"
+                  className="w-full border border-[#E2E8F0] rounded-lg px-3 py-2 text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB]"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-2 justify-end pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-[#64748B] hover:bg-[#F1F5F9] rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting || !childName.trim()}
+                  className="bg-[#0F172A] text-white px-4 py-2 text-xs font-semibold rounded-lg hover:bg-[#1E293B] disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {submitting && <Loader2 className="animate-spin" size={14} />} Pair Band
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
       <div className="space-y-6">
         {children.map((child) => (
