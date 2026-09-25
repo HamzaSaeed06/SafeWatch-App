@@ -16,8 +16,10 @@ const connectDB = async () => {
   client = new MongoClient(config.databaseUrl, {
     maxPoolSize: 10,
     minPoolSize: 2,
-    serverSelectionTimeoutMS: 10000,
+    serverSelectionTimeoutMS: 15000,
+    connectTimeoutMS: 15000,
   });
+
 
   await client.connect();
   const urlParts = config.databaseUrl.split("/");
