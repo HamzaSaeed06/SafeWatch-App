@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { POLICE_STATIONS } from '../data/mockData';
 import {
   Shield, Phone, MapPin, Clock, CheckCircle,
   AlertTriangle, Navigation, Lock, Search, Loader2
 } from 'lucide-react';
 
+const DEFAULT_PRIMARY = {
+  name: 'Central Emergency Dispatch Precinct',
+  address: '911 Emergency Response Center',
+  phone: '(415) 555-0191',
+  responseTime: '3 - 5 mins',
+};
+
+const DEFAULT_NEARBY = [
+  { name: 'District Central Police Station', address: '100 City Center Blvd', phone: '(415) 555-0101', distance: '1.2 km', status: '24/7 Active Desk' },
+  { name: 'Northside Community Precinct', address: '450 North Ave', phone: '(415) 555-0102', distance: '2.4 km', status: '24/7 Active Desk' },
+];
+
 export const PoliceStationPage = () => {
   const { activeAlertCount, addToast } = useApp();
   const [isSearchingNearby, setIsSearchingNearby] = useState(false);
-  const [liveStations, setLiveStations] = useState(POLICE_STATIONS.nearby);
+  const [liveStations, setLiveStations] = useState(DEFAULT_NEARBY);
 
   const handleFindLiveStations = async () => {
     setIsSearchingNearby(true);
@@ -19,7 +30,6 @@ export const PoliceStationPage = () => {
     const searchLng = -122.4194;
 
     try {
-      // Query OpenStreetMap Nominatim API for police stations near coordinates
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=police+station&limit=4&lat=${searchLat}&lon=${searchLng}`
       );
@@ -86,22 +96,22 @@ export const PoliceStationPage = () => {
               <Shield size={28} className="text-[#2563EB]" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#0F172A]">{POLICE_STATIONS.primary.name}</h2>
+              <h2 className="text-xl font-bold text-[#0F172A]">{DEFAULT_PRIMARY.name}</h2>
               <span className="inline-flex items-center gap-1.5 bg-[#DBEAFE] text-[#2563EB] text-xs font-semibold px-2.5 py-0.5 rounded-full mt-2">
                 <span className="w-1.5 h-1.5 bg-[#2563EB] rounded-full" /> Primary Emergency Contact
               </span>
               <div className="mt-4 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-[#334155]">
                   <Phone size={15} className="text-[#64748B]" />
-                  <span>Emergency Desk: <strong>{POLICE_STATIONS.primary.phone}</strong></span>
+                  <span>Emergency Desk: <strong>{DEFAULT_PRIMARY.phone}</strong></span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-[#334155]">
                   <MapPin size={15} className="text-[#64748B]" />
-                  <span>{POLICE_STATIONS.primary.address}</span>
+                  <span>{DEFAULT_PRIMARY.address}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-[#334155]">
                   <Clock size={15} className="text-[#64748B]" />
-                  <span>Avg Response Time: <strong>{POLICE_STATIONS.primary.responseTime}</strong></span>
+                  <span>Avg Response Time: <strong>{DEFAULT_PRIMARY.responseTime}</strong></span>
                 </div>
               </div>
             </div>
@@ -114,6 +124,7 @@ export const PoliceStationPage = () => {
           </button>
         </div>
       </div>
+
 
       {/* Main Content (2 columns) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

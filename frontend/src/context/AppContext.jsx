@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { INITIAL_CHILDREN, INITIAL_ALERTS, INITIAL_SAFE_ZONES, CURRENT_USER } from '../data/mockData';
 import { authAPI, bandsAPI, locationsAPI, sosAPI, alertsAPI } from '../services/api';
+
 
 const AppContext = createContext();
 
