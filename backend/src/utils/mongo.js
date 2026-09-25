@@ -1,6 +1,3 @@
-const dns = require("dns");
-dns.setServers(["8.8.8.8", "1.1.1.1"]);
-
 const { MongoClient, ObjectId } = require("mongodb");
 const config = require("../config");
 const logger = require("../config/logger");
@@ -11,9 +8,15 @@ let db;
 const connectDB = async () => {
   if (db) return db;
 
+  if (!config.databaseUrl) {
+    logger.error("CRITICAL ERROR: DATABASE_URL environment variable is not defined!");
+    throw new Error("DATABASE_URL environment variable is missing in Render settings!");
+  }
+
   client = new MongoClient(config.databaseUrl, {
     maxPoolSize: 10,
     minPoolSize: 2,
+    serverSelectionTimeoutMS: 10000,
   });
 
   await client.connect();
@@ -23,6 +26,7 @@ const connectDB = async () => {
   db = client.db(dbName);
 
   logger.info(`Connected to MongoDB database: ${dbName}`);
+
 
   process.on("SIGINT", async () => {
     await client.close();
