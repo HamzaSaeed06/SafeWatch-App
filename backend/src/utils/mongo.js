@@ -18,7 +18,9 @@ const connectDB = async () => {
     minPoolSize: 2,
     serverSelectionTimeoutMS: 15000,
     connectTimeoutMS: 15000,
+    tls: true,
   });
+
 
 
   await client.connect();
