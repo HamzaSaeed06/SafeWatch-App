@@ -12,9 +12,10 @@ const backgroundJobs = require("./services/backgroundJobs");
 
 const app = express();
 
-app.use(helmet());
-app.use(cors({ origin: config.cors.origin || "*" }));
+app.set("trust proxy", 1);
+app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"], allowedHeaders: ["Content-Type", "Authorization", "x-device-secret"] }));
 app.use(express.json({ limit: "10kb" }));
+
 
 const limiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
