@@ -13,10 +13,10 @@ export const AppProvider = ({ children: appChildren }) => {
   const [authLoading, setAuthLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [children, setChildren] = useState(INITIAL_CHILDREN);
-  const [alerts, setAlerts] = useState(INITIAL_ALERTS);
-  const [safeZones, setSafeZones] = useState(INITIAL_SAFE_ZONES);
-  const [currentUser, setCurrentUser] = useState(CURRENT_USER);
+  const [children, setChildren] = useState([]);
+  const [alerts, setAlerts] = useState([]);
+  const [safeZones, setSafeZones] = useState([]);
+  const [currentUser, setCurrentUser] = useState({ name: '', email: '', phone: '' });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [activeModal, setActiveModal] = useState(null);
@@ -34,37 +34,44 @@ export const AppProvider = ({ children: appChildren }) => {
 
     try {
       const bandsRes = await bandsAPI.getBands();
-      if (bandsRes?.data && Array.isArray(bandsRes.data) && bandsRes.data.length > 0) {
+      if (bandsRes?.data && Array.isArray(bandsRes.data)) {
         setIsBackendConnected(true);
         const mappedChildren = bandsRes.data.map((b) => ({
-          id: b.id,
+          id: b.id || b._id,
           name: b.nickname || 'Child Band',
           status: b.status || 'safe',
-          location: 'Live Tracking Active',
+          location: b.lastLat ? `${b.lastLat.toFixed(4)}, ${b.lastLng.toFixed(4)}` : 'Live Tracking Active',
           coordinates: { lat: b.lastLat || 37.7749, lng: b.lastLng || -122.4194 },
-          batteryPct: b.batteryPct || 90,
+          batteryPct: b.batteryPct || 100,
           age: b.age || 8,
           photo: 'https://images.unsplash.com/photo-1544717305-2782549b5136?w=120&h=120&fit=crop&auto=format',
           lastPing: 'Just now',
         }));
         setChildren(mappedChildren);
 
-        try {
-          const primaryBandId = bandsRes.data[0].id;
-          const zonesRes = await locationsAPI.getSafeZones(primaryBandId);
-          if (zonesRes?.data && Array.isArray(zonesRes.data)) {
-            const mappedZones = zonesRes.data.map((z) => ({
-              id: z.id,
-              name: z.name,
-              status: z.isActive ? 'active' : 'inactive',
-              radiusM: z.radiusM || 150,
-              lat: z.lat,
-              lng: z.lng,
-            }));
-            setSafeZones(mappedZones);
+        if (bandsRes.data.length > 0) {
+          try {
+            const primaryBandId = bandsRes.data[0].id || bandsRes.data[0]._id;
+            const zonesRes = await locationsAPI.getSafeZones(primaryBandId);
+            if (zonesRes?.data && Array.isArray(zonesRes.data)) {
+              const mappedZones = zonesRes.data.map((z) => ({
+                id: z.id || z._id,
+                name: z.name,
+                status: z.isActive ? 'active' : 'inactive',
+                radiusM: z.radiusM || 150,
+                lat: z.lat,
+                lng: z.lng,
+              }));
+              setSafeZones(mappedZones);
+            } else {
+              setSafeZones([]);
+            }
+          } catch (err) {
+            console.log('Safe zones fetch notice:', err.message);
+            setSafeZones([]);
           }
-        } catch (err) {
-          console.log('Safe zones fetch notice:', err.message);
+        } else {
+          setSafeZones([]);
         }
       }
 
@@ -73,14 +80,18 @@ export const AppProvider = ({ children: appChildren }) => {
         const alertsRes = await alertsAPI.getAlerts();
         if (alertsRes?.data && Array.isArray(alertsRes.data)) {
           setAlerts(alertsRes.data);
+        } else {
+          setAlerts([]);
         }
       } catch (err) {
         console.log('Alerts fetch notice:', err.message);
+        setAlerts([]);
       }
     } catch (err) {
       console.log('Refresh data error:', err.message);
     }
   };
+
 
   // Validate session & sync data on mount / token change
   useEffect(() => {
